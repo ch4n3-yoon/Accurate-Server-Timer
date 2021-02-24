@@ -3,6 +3,7 @@ import time
 import pytz
 import pprint
 import requests
+import logging
 
 from datetime import datetime, timezone, timedelta
 from http.cookiejar import http2time
@@ -40,15 +41,22 @@ def get_accurate_server_time(session: requests.Session):
 
 def main():
     delta = 0.1
+    re_calculate = False
     session = requests.Session()
-    server_time = get_accurate_server_time(session)
+    logging.basicConfig(level=logging.INFO)
+
+    while True:
+        server_time = get_accurate_server_time(session)
     
-    execute_seconds = 0
-    for _ in range(100000000000000):
-        guessed_server_time = server_time + timedelta(seconds=execute_seconds)
-        print(f'[ INFO ] guessed server time : {guessed_server_time}')
-        time.sleep(delta)
-        execute_seconds += delta
+        execute_seconds = 0
+        while True:
+            guessed_server_time = server_time + timedelta(seconds=execute_seconds)
+            logging.info(f'guessed server time : {guessed_server_time}')
+            time.sleep(delta)
+            execute_seconds += delta
+
+            if execute_seconds % 30 == 0:
+                break
 
 
 if __name__ == '__main__':
